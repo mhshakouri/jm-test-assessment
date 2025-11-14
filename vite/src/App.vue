@@ -9,5 +9,6 @@ setupColorScheme();
 <template>
   <main class="min-h-screen bg-jm-gray-lighter text-jm-blue-darker dark:bg-jm-blue dark:text-jm-gray-lighter">
     <AppHeader />
+    <router-view />
   </main>
 </template>

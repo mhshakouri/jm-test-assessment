@@ -2,8 +2,10 @@ import { renderToString } from 'vue/server-renderer'
 import { createApp } from './main'
 import universalCookie from 'universal-cookie'
 
-export async function render(_url: string, cookies?: string | object | null) {
-  const { app } = createApp()
+export async function render(url: string, cookies?: string | object | null) {
+  const { app, router } = createApp()
+  await router.push(url)
+  await router.isReady()
 
   // passing SSR context object which will be available via useSSRContext()
   // @vitejs/plugin-vue injects code into a component's setup() that registers
