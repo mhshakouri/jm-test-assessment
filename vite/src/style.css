@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;600;800&display=swap");
+
 @import "tailwindcss";
 
 /* https://tailwindcss.com/docs/dark-mode#using-a-data-attribute */
@@ -7,10 +9,19 @@
 @theme {
   --breakpoint-mobile: 23.4375rem; /* Mobile: 375px */
   --breakpoint-desktop: 90rem; /* Desktop: 1440px */
-  --color-brand-blue-lighter: hsl(200, 15%, 8%); /* Very Dark Blue (Light Mode Text) */
-  --color-brand-blue: hsl(209, 23%, 22%); /* Dark Blue (Dark Mode Elements) */
-  --color-brand-blue-darker: hsl(207, 26%, 17%); /* Very Dark Blue (Dark Mode Background) */
-  --color-brand-gray-lighter: hsl(0, 0%, 98%); /* Very Light Gray (Light Mode Background) */
-  --color-brand-gray: hsl(0, 0%, 52%); /* Dark Gray (Light Mode Input) */
-  --color-brand-white: hsl(0, 0%, 100%); /* White (Dark Mode Text & Light Mode Elements) */
+  --color-jm-blue-darker: hsl(200, 15%, 8%); /* Very Dark Blue (Light Mode Text) */
+  --color-jm-blue-lighter: hsl(209, 23%, 22%); /* Dark Blue (Dark Mode Elements) */
+  --color-jm-blue: hsl(207, 26%, 17%); /* Very Dark Blue (Dark Mode Background) */
+  --color-jm-gray-lighter: hsl(0, 0%, 98%); /* Very Light Gray (Light Mode Background) */
+  --color-jm-gray: hsl(0, 0%, 52%); /* Dark Gray (Light Mode Input) */
+  --color-jm-white: hsl(0, 0%, 100%); /* White (Dark Mode Text & Light Mode Elements) */
+  --default-font-family: 'Nunito Sans', sans-serif;
+
+  --text-small: 0.875rem;
+  --text-normal: 1rem;
+  --text-light: 300;
+  --text-semibold: 600;
+  --text-extrabold: 800;
 }
+
+

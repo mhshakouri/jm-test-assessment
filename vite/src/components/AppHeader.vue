@@ -1,6 +1,6 @@
 <template>
-    <header>
-        <h1>{{ slogan }}</h1>
+    <header class="flex items-center justify-between p-4 bg-jm-white dark:bg-jm-blue-lighter">
+        <h1 class="text-normal font-semibold">{{ slogan }}</h1>
         <ColorSchemeToggler />
     </header>
 </template>

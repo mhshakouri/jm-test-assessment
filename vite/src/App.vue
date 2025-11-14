@@ -7,7 +7,7 @@ setupColorScheme();
 
 </script>
 <template>
-  <main class="min-h-screen bg-brand-gray-lighter text-brand-blue-lighter dark:bg-brand-blue-darker dark:text-brand-white">
+  <main class="min-h-screen bg-jm-gray-lighter text-jm-blue-darker dark:bg-jm-blue dark:text-jm-gray-lighter">
     <AppHeader />
   </main>
 </template>

@@ -9,11 +9,11 @@ export async function render(_url: string, cookies?: string | object | null) {
   // @vitejs/plugin-vue injects code into a component's setup() that registers
   // itself on ctx.modules. After the render, ctx.modules would contain all the
   // components that have been instantiated during this render call.
-  const ctx = {}
-  const html = await renderToString(app, ctx)
 
   // Extract theme from cookies (default to 'light' if not set)
   const theme = new universalCookie(cookies)?.get('theme') || 'light'
+  const ctx = {theme}
+  const html = await renderToString(app, ctx)
 
   return { html, theme }
 }
