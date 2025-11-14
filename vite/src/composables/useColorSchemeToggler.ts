@@ -1,4 +1,4 @@
-import { watch } from "vue"
+import { computed, watch } from "vue"
 import { useColorScheme } from "./useColorScheme";
 import { ColorScheme } from "../types";
 
@@ -23,9 +23,12 @@ export const useColorSchemeToggler = () => {
         applyColorScheme()
         watch(theme, applyColorScheme, { immediate: true, flush: 'sync' })
     }
+
+    const themeIcon = computed(() => theme.value === 'light' ? 'mdi:moon-and-stars' : 'mdi:white-balance-sunny')
     
     return {
         theme,
+        themeIcon,
         toggleColorScheme,
         setupColorScheme,
     }
