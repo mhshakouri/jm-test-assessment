@@ -20,7 +20,8 @@
     "sirv": "^3.0.2",
     "tailwindcss": "^4.1.17",
     "universal-cookie": "^7.2.2",
-    "vue": "^3.5.21"
+    "vue": "^3.5.21",
+    "vue-router": "^4.6.3"
   },
   "devDependencies": {
     "@iconify/vue": "^5.0.0",
