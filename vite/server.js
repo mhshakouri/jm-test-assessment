@@ -3,8 +3,9 @@ import express from 'express'
 
 // Constants
 const isProduction = process.env.NODE_ENV === 'production'
-const port = process.env.PORT || 5173
+const port = process.env.PORT || 3000
 const base = process.env.BASE || '/'
+const host = process.env.HOSTNAME || '0.0.0.0'
 
 // Cached production assets
 const templateHtml = isProduction
@@ -66,6 +67,6 @@ app.use('*all', async (req, res) => {
 })
 
 // Start http server
-app.listen(port, () => {
-  console.log(`Server started at http://localhost:${port}`)
+app.listen({port, hostname: host}, () => {
+  console.log(`Server started at http://${host === '0.0.0.0' ? 'localhost' : host}:${port}`)
 })
