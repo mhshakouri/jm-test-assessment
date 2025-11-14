@@ -51,10 +51,11 @@ app.use('*all', async (req, res) => {
       template = templateHtml
       render = (await import('./dist/server/entry-server.js')).render
     }
+    const rendered = await render(url, req.headers.cookie)
 
-    const rendered = await render(url)
-
+    // Inject theme into HTML tag
     const html = template
+      .replace(/<html([^>]*)>/, `<html$1 data-theme="${rendered.theme || 'light'}">`)
       .replace(`<!--app-head-->`, rendered.head ?? '')
       .replace(`<!--app-html-->`, rendered.html ?? '')
 
