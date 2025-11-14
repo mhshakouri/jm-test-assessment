@@ -1,8 +1,17 @@
 <template>
   <div ref="wrapperRef" :class="wrapperClass">
-    <button @click.capture="toggleSelectList" :class="buttonClass" aria-label="Select an option">
-      <span v-if="modelValue?.value"  data-close @click.stop="clearSelectedOption" :class="closeClass">
-        <Icon icon="mdi:close"/>
+    <button
+      @click.capture="toggleSelectList"
+      :class="buttonClass"
+      aria-label="Select an option"
+    >
+      <span
+        v-if="modelValue?.value"
+        data-close
+        @click.stop="clearSelectedOption"
+        :class="closeClass"
+      >
+        <Icon icon="mdi:close" />
       </span>
       <span :class="buttonLabelClass">{{ selectedOption.label }}</span>
       <Icon :icon="chevronIconName" :class="iconClass" />
@@ -98,7 +107,8 @@ const uiSelectTheme = tv(
       close: "flex-none hover:bg-jm-gray dark:hover:bg-jm-blue p-2 rounded-sm",
       optionList:
         "absolute top-full mt-2 left-0 w-full bg-jm-white dark:bg-jm-blue-lighter shadow-lg rounded-md flex flex-col gap-2 p-2",
-      optionItem: "py-1 px-4 cursor-pointer flex items-center justify-start rounded-sm",
+      optionItem:
+        "py-1 px-4 cursor-pointer flex items-center justify-start rounded-sm",
       transitionOut: "transition duration-300 ease-out",
       transitionIn: "transition duration-300 ease-in",
       transitionLeaveTo: "opacity-0 translate-y-10",
