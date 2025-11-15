@@ -50,12 +50,14 @@ const useCountriesComposable = () => {
     return !isNaN(num) ? num : "N/A";
   };
 
-  const setCountry = (data: Partial<Country>) => {
+  const setCountry = (data: Partial<Country>, options?: { needFullDetails?: boolean }) => {
     if (!data.alpha3Code) return;
 
     const currentCountry = countriesRepository.value.get(data.alpha3Code);
     const population = normalizePopulation(data.population ?? currentCountry?.population);
-    const needFullDetails = !data.borders?.length && !data.currencies?.length;
+    const needFullDetails = options?.needFullDetails !== undefined 
+      ? options.needFullDetails 
+      : !data.borders?.length && !data.currencies?.length;
 
     const country: Country = {
       ...currentCountry,

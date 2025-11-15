@@ -59,3 +59,11 @@ export const getCountryUrl = (code: string): string => {
   const fields = FIELD_SETS.full.join(",");
   return `${BASE_URL}/alpha/${code.toLowerCase()}?fields=${fields}`;
 };
+
+/**
+ * Build URL for fetching border countries (minimal fields only)
+ */
+export const getBorderCountryUrl = (code: string): string => {
+  const fields = FIELD_SETS.minimal.join(",");
+  return `${BASE_URL}/alpha/${code.toLowerCase()}?fields=${fields}`;
+};

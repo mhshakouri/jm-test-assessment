@@ -1,5 +1,5 @@
 import { computed, ref, watch } from "vue";
-import { getCountriesUrl, getCountryUrl } from "../constants/rest-countries";
+import { getCountriesUrl, getCountryUrl, getBorderCountryUrl } from "../constants/rest-countries";
 import { useRegionFilter } from "./useRegionFilter";
 import { Country, Region } from "../types";
 import { useFetchAsyncData } from "./useFetchAsyncData";
@@ -105,7 +105,18 @@ export const useFetchCountries = () => {
     
     // Check repository first
     const existingCountry = getCountryByCode(normalizedCode);
-    if (existingCountry && !existingCountry.needFullDetails) {
+    
+    // Check if country has all required fields for detail page
+    // If missing fields like currencies, languages, topLevelDomain, subregion, or borders,
+    // we need to fetch full details even if needFullDetails is false
+    const hasFullDetails = existingCountry && 
+      Array.isArray(existingCountry.currencies) &&
+      Array.isArray(existingCountry.languages) &&
+      Array.isArray(existingCountry.topLevelDomain) &&
+      typeof existingCountry.subregion === 'string' &&
+      Array.isArray(existingCountry.borders);
+    
+    if (existingCountry && hasFullDetails) {
       return existingCountry;
     }
     
@@ -115,6 +126,35 @@ export const useFetchCountries = () => {
       if (countryError.value) {
         throw countryError.value;
       }
+      
+      // Get the fetched country from repository
+      const fetchedCountry = getCountryByCode(normalizedCode);
+      
+      // Fetch border countries if they exist and aren't already fully loaded
+      if (fetchedCountry?.borders?.length) {
+        const borderPromises = fetchedCountry.borders
+          .map(async (borderCode) => {
+            const normalizedBorderCode = borderCode.toLowerCase().trim();
+            const existingBorderCountry = getCountryByCode(normalizedBorderCode);
+            
+            // Only fetch if not already in repository or needs full details
+            if (!existingBorderCountry || existingBorderCountry.needFullDetails) {
+              try {
+                const url = getBorderCountryUrl(normalizedBorderCode);
+                const borderCountry = await fetchCountryFromApi(url);
+                // Set border country with minimal data and mark as complete
+                // (we don't need borders of borders, so explicitly set needFullDetails to false)
+                setCountry(borderCountry, { needFullDetails: false });
+              } catch (err) {
+                console.error(`Failed to fetch border country ${normalizedBorderCode}:`, err);
+              }
+            }
+          });
+        
+        // Fetch all border countries in parallel
+        await Promise.all(borderPromises);
+      }
+      
       // Return from repository (set by watcher)
       return getCountryByCode(normalizedCode);
     } catch (err) {
