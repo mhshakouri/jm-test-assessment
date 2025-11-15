@@ -1,5 +1,9 @@
 import { computed, ref, watch } from "vue";
-import { getCountriesUrl, getCountryUrl, getBorderCountryUrl } from "../constants/rest-countries";
+import {
+  getCountriesUrl,
+  getCountryUrl,
+  getBorderCountryUrl,
+} from "../constants/rest-countries";
 import { useRegionFilter } from "./useRegionFilter";
 import { Country, Region } from "../types";
 import { useFetchAsyncData } from "./useFetchAsyncData";
@@ -21,17 +25,23 @@ const fetchCountryFromApi = async (url: string): Promise<Country> => {
   }
   const data: Country = await response.json();
   if (!data.name || !data.alpha3Code) {
-    throw new Error('No country found');
+    throw new Error("No country found");
   }
   return data;
 };
 
 export const useFetchCountries = () => {
   const { regionFilter } = useRegionFilter();
-  const { setCountries, countriesList: fetchCountriesList, setCountry, getCountryByCode } = useCountries();
+  const {
+    setCountries,
+    countriesList: fetchCountriesList,
+    setCountry,
+    getCountryByCode,
+  } = useCountries();
 
   // State
-  const fetchCountryCode = ref<string>()
+  const fetchCountryCode = ref<string>();
+  const fetchBorderCodes = ref<string[]>([]);
 
   // Computed values
   const region = computed(() =>
@@ -44,18 +54,55 @@ export const useFetchCountries = () => {
     region.value ? `countries-${region.value}` : "countries-all"
   );
 
-  const fetchCountryKey = computed(() => 
-    fetchCountryCode.value ? `country-${fetchCountryCode.value.toLowerCase()}` : undefined
+  const fetchCountryKey = computed(() =>
+    fetchCountryCode.value
+      ? `country-${fetchCountryCode.value.toLowerCase()}`
+      : undefined
+  );
+
+  const borderCountriesKey = computed(() =>
+    fetchBorderCodes.value.length
+      ? `border-countries-${[...fetchBorderCodes.value]
+          .map((code) => code.toLowerCase())
+          .sort()
+          .join("-")}`
+      : ""
   );
 
   const countriesUrl = computed(() => getCountriesUrl(region.value));
-  const countryUrl = computed(() => 
-    fetchCountryCode.value ? getCountryUrl(fetchCountryCode.value) : ''
+  const countryUrl = computed(() =>
+    fetchCountryCode.value ? getCountryUrl(fetchCountryCode.value) : ""
   );
 
+  const borderCountriesFetcher = async (): Promise<Country[]> => {
+    if (!fetchBorderCodes.value.length) {
+      return [];
+    }
+
+    const uniqueCodes = Array.from(
+      new Set(
+        fetchBorderCodes.value
+          .map((code) => code?.toLowerCase?.()?.trim?.())
+          .filter((code): code is string => Boolean(code))
+      )
+    );
+
+    if (!uniqueCodes.length) {
+      return [];
+    }
+
+    return Promise.all(
+      uniqueCodes.map((code) => fetchCountryFromApi(getBorderCountryUrl(code)))
+    );
+  };
 
   // Setup async data fetching
-  const { data: countriesData, execute: getCountries, pending: countriesPending, error: countriesError } = useFetchAsyncData<Country[]>(
+  const {
+    data: countriesData,
+    execute: getCountries,
+    pending: countriesPending,
+    error: countriesError,
+  } = useFetchAsyncData<Country[]>(
     () => fetchKey.value,
     () => fetchCountriesFromApi(countriesUrl.value),
     {
@@ -64,8 +111,13 @@ export const useFetchCountries = () => {
     }
   );
 
-  const { data: countryData, execute: getCountry, pending: countryPending, error: countryError } = useFetchAsyncData<Country>(
-    () => fetchCountryKey.value ?? '',
+  const {
+    data: countryData,
+    execute: getCountry,
+    pending: countryPending,
+    error: countryError,
+  } = useFetchAsyncData<Country>(
+    () => fetchCountryKey.value ?? "",
     () => fetchCountryFromApi(countryUrl.value),
     {
       immediate: false,
@@ -73,24 +125,57 @@ export const useFetchCountries = () => {
     }
   );
 
+  const {
+    data: borderCountriesData,
+    execute: getBorderCountries,
+    error: borderCountriesError,
+  } = useFetchAsyncData<Country[]>(
+    () => borderCountriesKey.value,
+    () => borderCountriesFetcher(),
+    {
+      immediate: false,
+      server: true,
+    }
+  );
+
   // Sync data to repository
-  watch(countriesData, (newCountriesData) => {
-    if (newCountriesData?.length > 0) {
-      setCountries(newCountriesData);
-    }
-  }, { immediate: true, deep: true, flush: 'sync' });
-  
-  watch(countryData, (newCountryData) => {
-    if (newCountryData?.alpha3Code) {
-      setCountry(newCountryData);
-    }
-  }, { immediate: true, deep: true, flush: 'sync' });
+  watch(
+    countriesData,
+    (newCountriesData) => {
+      if (newCountriesData?.length > 0) {
+        setCountries(newCountriesData);
+      }
+    },
+    { immediate: true, deep: true, flush: "sync" }
+  );
+
+  watch(
+    countryData,
+    (newCountryData) => {
+      if (newCountryData?.alpha3Code) {
+        setCountry(newCountryData);
+      }
+    },
+    { immediate: true, deep: true, flush: "sync" }
+  );
+
+  watch(
+    borderCountriesData,
+    (newBorderCountries) => {
+      if (newBorderCountries?.length) {
+        newBorderCountries.forEach((borderCountry) =>
+          setCountry(borderCountry, { needFullDetails: false })
+        );
+      }
+    },
+    { immediate: true, deep: true, flush: "sync" }
+  );
 
   // Public functions
   const fetchCountries = async () => {
     try {
       await getCountries();
-      if (countriesError.value) {  
+      if (countriesError.value) {
         throw countriesError.value;
       }
     } catch (err) {
@@ -98,63 +183,72 @@ export const useFetchCountries = () => {
     }
   };
 
-  const fetchCountryByCode = async (code: string): Promise<Country | undefined> => {
+  const fetchCountryByCode = async (
+    code: string
+  ): Promise<Country | undefined> => {
     if (!code) return undefined;
-    
+
     const normalizedCode = code.toLowerCase().trim();
-    
+
     // Check repository first
     const existingCountry = getCountryByCode(normalizedCode);
-    
+
     // Check if country has all required fields for detail page
     // If missing fields like currencies, languages, topLevelDomain, subregion, or borders,
     // we need to fetch full details even if needFullDetails is false
-    const hasFullDetails = existingCountry && 
+    const hasFullDetails =
+      existingCountry &&
       Array.isArray(existingCountry.currencies) &&
       Array.isArray(existingCountry.languages) &&
       Array.isArray(existingCountry.topLevelDomain) &&
-      typeof existingCountry.subregion === 'string' &&
+      typeof existingCountry.subregion === "string" &&
       Array.isArray(existingCountry.borders);
-    
+
     if (existingCountry && hasFullDetails) {
       return existingCountry;
     }
-    
+
     try {
       fetchCountryCode.value = normalizedCode;
       await getCountry();
       if (countryError.value) {
         throw countryError.value;
       }
-      
-      // Get the fetched country from repository
-      const fetchedCountry = getCountryByCode(normalizedCode);
-      
+
+      // Ensure data is synced to repository (watcher should sync with flush: 'sync', but ensure it)
+      let fetchedCountry = getCountryByCode(normalizedCode);
+      if (!fetchedCountry && countryData.value) {
+        setCountry(countryData.value as Country);
+        fetchedCountry = getCountryByCode(normalizedCode);
+      }
+
+      if (!fetchedCountry) {
+        return undefined;
+      }
+
       // Fetch border countries if they exist and aren't already fully loaded
       if (fetchedCountry?.borders?.length) {
-        const borderPromises = fetchedCountry.borders
-          .map(async (borderCode) => {
-            const normalizedBorderCode = borderCode.toLowerCase().trim();
-            const existingBorderCountry = getCountryByCode(normalizedBorderCode);
-            
-            // Only fetch if not already in repository or needs full details
-            if (!existingBorderCountry || existingBorderCountry.needFullDetails) {
-              try {
-                const url = getBorderCountryUrl(normalizedBorderCode);
-                const borderCountry = await fetchCountryFromApi(url);
-                // Set border country with minimal data and mark as complete
-                // (we don't need borders of borders, so explicitly set needFullDetails to false)
-                setCountry(borderCountry, { needFullDetails: false });
-              } catch (err) {
-                console.error(`Failed to fetch border country ${normalizedBorderCode}:`, err);
-              }
-            }
-          });
-        
-        // Fetch all border countries in parallel
-        await Promise.all(borderPromises);
+        fetchBorderCodes.value = fetchedCountry.borders
+          .map((borderCode) => borderCode?.toLowerCase?.()?.trim?.())
+          .filter((borderCode): borderCode is string => Boolean(borderCode));
+
+        if (borderCountriesKey.value) {
+          await getBorderCountries();
+          if (borderCountriesError.value) {
+            throw borderCountriesError.value;
+          }
+
+          const fetchedBorderCountries = borderCountriesData.value;
+          if (fetchedBorderCountries?.length) {
+            fetchedBorderCountries.forEach((borderCountry) =>
+              setCountry(borderCountry, { needFullDetails: false })
+            );
+          }
+        }
+      } else {
+        fetchBorderCodes.value = [];
       }
-      
+
       // Return from repository (set by watcher)
       return getCountryByCode(normalizedCode);
     } catch (err) {
@@ -165,16 +259,18 @@ export const useFetchCountries = () => {
     }
   };
 
-  return { 
-    fetchCountries, 
-    countriesData, 
-    countriesPending, 
-    countriesError, 
-    countriesList: fetchCountriesList, 
-    fetchCountryByCode, 
-    countryPending, 
-    countryError, 
-    countryData
+  return {
+    fetchCountries,
+    countriesData,
+    countriesPending,
+    countriesError,
+    countriesList: fetchCountriesList,
+    fetchCountryByCode,
+    countryPending,
+    countryError,
+    countryData,
+    borderCountriesData,
+    borderCountriesError,
+    getBorderCountries,
   };
 };
-
