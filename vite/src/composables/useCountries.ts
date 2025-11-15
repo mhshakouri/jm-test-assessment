@@ -73,6 +73,11 @@ const useCountriesComposable = () => {
         borders: data.borders ?? currentCountry.borders,
       });
     }
+    
+    // Ensure reactivity by replacing the Map reference
+    // This ensures Vue detects the change, especially for Map mutations
+    const newMap = new Map(countriesRepository.value);
+    countriesRepository.value = newMap;
   };
   const setCountries = (data: Partial<Country>[]) => {
     (data ?? []).forEach((country) => setCountry(country));
@@ -153,12 +158,19 @@ const useCountriesComposable = () => {
     });
   };
 
+  const getCountryByName = (name: string): Country | undefined => {
+    if (!name) return undefined;
+    const nameLower = name.toLowerCase().trim();
+    return countriesArray.value.find(country => country.name?.toLowerCase().trim() === nameLower);
+  };
+
   return {
     setCountries,
     setCountry,
     countriesList,
     countriesRepository,
     countriesArray,
+    getCountryByName
   };
 };
 

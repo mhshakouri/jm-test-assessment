@@ -1,4 +1,4 @@
-import { computed, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { createSharedComposable } from "@vueuse/core";
 import { restCountriesApi } from "../constants/rest-countries";
 import { useRegionFilter } from "./useRegionFilter";
@@ -8,7 +8,12 @@ import { useCountries } from "./useCountries";
 
 const useFetchCountriesComposable = () => {
   const { regionFilter } = useRegionFilter();
-  const { setCountries, countriesList: fetchCountriesList } = useCountries();
+  const { setCountries, countriesList: fetchCountriesList, setCountry } = useCountries();
+
+  const fetchCountryName = ref<string>()
+  const fetchCountryKey = computed(() => `country-${fetchCountryName.value}`);
+  const fetchCountryApiRoute = computed(() => restCountriesApi.routes.find(route => route.kind === "name" && route.name === "name"));
+  const fetchCountryUrl = computed(() => `${restCountriesApi.baseUrl}/name/${fetchCountryName.value}?fields=${fetchCountryApiRoute.value?.fields.join(",")}`);
 
   const region = computed(() =>
     regionFilter.value?.length
@@ -49,12 +54,33 @@ const useFetchCountriesComposable = () => {
       .catch((error) => {
         throw error;
       })
-
   };
 
-  const { data, execute, pending, error } = useFetchAsyncData<Country[]>(
+  const fetchCountryFromApi = async (): Promise<Country> => {
+    const response = await fetch(fetchCountryUrl.value);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data: Country[] = await response.json();
+    // The API returns an array, take the first result
+    if (!data || data.length === 0) {
+      throw new Error('No country found');
+    }
+    return data[0];
+  };
+
+  const { data, execute: getCountries, pending, error } = useFetchAsyncData<Country[]>(
     () => fetchKey.value,
     async () => await fetchCountriesFromApi(),
+    {
+      immediate: false,
+      server: true,
+    }
+  );
+
+  const { data: countryData, execute: getCountry, pending: countryPending, error: countryError } = useFetchAsyncData<Country>(
+    () => fetchCountryKey.value,
+    async () => await fetchCountryFromApi(),
     {
       immediate: false,
       server: true,
@@ -73,7 +99,7 @@ const useFetchCountriesComposable = () => {
 
   const fetchCountries = async () => {
     try {
-      await execute();
+      await getCountries();
       if (error.value) {  
         throw error.value;
       }
@@ -87,7 +113,24 @@ const useFetchCountriesComposable = () => {
     }
   };
 
-  return { fetchCountries, data, pending, error, countriesList: fetchCountriesList };
+  const fetchCountry = async (name: string) => {
+    fetchCountryName.value = name;
+    try {
+      await getCountry();
+      if (countryError.value) {
+        throw countryError.value;
+      }
+      // Set the country in the repository
+      if (countryData.value) {
+        setCountry(countryData.value);
+      }
+    } catch (err) {
+      console.error(err);
+      // Error is already set in countryError.value
+    }
+  };
+
+  return { fetchCountries, data, pending, error, countriesList: fetchCountriesList, fetchCountry, countryPending, countryError, countryData };
 };
 
 export const useFetchCountries = createSharedComposable(useFetchCountriesComposable);

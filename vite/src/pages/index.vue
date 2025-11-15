@@ -1,7 +1,7 @@
 <template>
   <div>
     <PageHeader />
-    <ListCountry v-if="!pending && !error && countriesList?.length" :countries="countriesList" class="py-6"/>
+    <ListCountry v-if="!pending && !error && countriesList?.length" :countries="countriesList" class="py-6" />
   </div>
 </template>
 <script setup lang="ts">
@@ -15,5 +15,5 @@ const { fetchCountries, pending, error, countriesList } = useFetchCountries();
 
 // Fetch data on SSR and client
 setupRegionFilter();
-await fetchCountries()
+await fetchCountries();
 </script>

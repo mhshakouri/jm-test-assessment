@@ -16,4 +16,5 @@ import { Country } from '../../types';
 defineProps<{
     countries: Country[];
 }>();
+
 </script>
