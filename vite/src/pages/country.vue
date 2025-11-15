@@ -6,7 +6,7 @@ import type { Country } from '../types';
 import { useRouter } from 'vue-router';
 import { useCountries } from '../composables/useCountries';
 import { useFetchCountries } from '../composables/useFetchCountries';
-import { computed, ref, watch } from 'vue';
+import { computed, watch } from 'vue';
 import CountryDetail from '../components/country/CountryDetail.vue';
 
 const { currentRoute } = useRouter();
@@ -18,23 +18,26 @@ const code = computed(() => {
   return routeCode?.toLowerCase()?.trim();
 });
 
-const country = ref<Country | undefined>(undefined);
+const country = computed<Country | undefined>(() => {
+  const currentCode = code.value;
+  if (!currentCode) return undefined;
+  return getCountryByCode(currentCode);
+});
 
 // Fetch country when code changes
 watch(code, async (newCode) => {
   if (newCode) {
-    country.value = await fetchCountryByCode(newCode);
-  } else {
-    country.value = undefined;
+    await fetchCountryByCode(newCode);
   }
 }, { immediate: true });
 
 const borderCountries = computed<Country[]>(() => {
-  if (!country.value?.borders?.length) {
+  const currentCountry = country.value;
+  if (!currentCountry?.borders?.length) {
     return [];
   }
   
-  return country.value.borders
+  return currentCountry.borders
     .map(borderCode => getCountryByCode(borderCode))
     .filter((borderCountry): borderCountry is Country => borderCountry !== undefined);
 });

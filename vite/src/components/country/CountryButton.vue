@@ -22,7 +22,6 @@ const goToCountry = () => {
   region.value = undefined;
 
   const code = props.country.alpha3Code?.toLowerCase()?.trim();
-  console.log('goToCountry', code);
   if (!code) return;
   
   push({

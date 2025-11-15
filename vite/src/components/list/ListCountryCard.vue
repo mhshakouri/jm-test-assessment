@@ -4,7 +4,7 @@
     @click="goToCountry"
   >
     <Flag
-      v-if="country.flags.png?.length"
+      v-if="country.flags?.png"
       :flag="country.flags"
       :name="country.name"
       :preload="preload"
@@ -28,6 +28,9 @@ import { useRouter } from "vue-router";
 import type { Country } from "../../types";
 import UiKeyValue from "../ui/UiKeyValue.vue";
 import Flag from "../country/CountryFlag.vue";
+import { formatPopulation } from "../../utils/formatPopulation";
+import { useSearch } from "../../composables/useSearch";
+import { useRegion } from "../../composables/useRegion";
 
 const props = defineProps<{
   country: Country;
@@ -35,22 +38,23 @@ const props = defineProps<{
 }>();
 
 const { push } = useRouter();
+const { searchText } = useSearch();
+const { region } = useRegion();
 
 const buttonClasses = computed(() =>
   "flex flex-col gap-2 cursor-pointer bg-jm-white text-jm-blue-darker dark:bg-jm-blue-lighter dark:text-jm-gray-lighter py-3 px-2 rounded-md focus:outline-none focus:ring-2 focus:ring-jm-blue-lighter dark:focus:ring-jm-gray-lighter hover:bg-jm-gray-lighter dark:hover:bg-jm-blue-darker transition-colors duration-200 w-full md:hover:shadow-md"
 );
 
-const formattedPopulation = computed(() => {
-  const population = props.country.population;
-  if (population === "N/A" || population === undefined || population === 0) {
-    return "N/A";
-  }
-  return typeof population === "number" ? population.toLocaleString("en-US") : "N/A";
-});
+const formattedPopulation = computed(() => formatPopulation(props.country.population));
 
 const goToCountry = () => {
   const code = props.country.alpha3Code?.toLowerCase()?.trim();
   if (!code) return;
+  
+  // Clear search and region filters when navigating to country detail
+  // This ensures a clean state when viewing country details
+  searchText.value = undefined;
+  region.value = undefined;
   
   push({
     name: "country",
