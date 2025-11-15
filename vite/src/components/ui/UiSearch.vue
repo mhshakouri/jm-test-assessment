@@ -23,10 +23,10 @@ const { searchText } = useSearch();
 // Theme
 const uiSearchTheme = tv(
   {
-    base: "flex items-center gap-2 bg-jm-white text-jm-gray dark:text-jm-gray-lighter dark:bg-jm-blue-lighter rounded-md px-4 py-2 w-full",
+    base: "flex items-center gap-2 bg-jm-white text-jm-blue-darker dark:bg-jm-blue-lighter dark:text-jm-gray-lighter p-2 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-jm-blue-lighter dark:focus:ring-jm-gray-lighter hover:bg-jm-gray-lighter dark:hover:bg-jm-blue-darker transition-colors duration-200 rounded-md px-4 py-2 w-full focus-within:ring-2 focus-within:ring-jm-blue-lighter dark:focus-within:ring-jm-gray-lighter",
     slots: {
       input:
-        "w-full bg-transparent outline-none focus:ring-0 focus:border-none focus:outline-none",
+        "w-full bg-transparent outline-none focus:ring-0 focus:border-none focus:outline-none text-jm-blue-darker dark:text-jm-gray-lighter placeholder:text-jm-blue-darker dark:placeholder:text-jm-gray-lighter",
     },
   },
   { twMerge: true }

@@ -10,10 +10,23 @@ import { regionsData } from "./regions";
 const targetVersion = "v2";
 
 // used routes from the api
-const restCountriesApiRoutes = ["alpha", "all", "name", "region"] as const;
+const restCountriesApiRoutes = [
+  "alpha", 
+  "all", 
+  "name", 
+  "region"
+] as const;
 
 const fields: Record<(typeof restCountriesApiRoutes)[number], string[]> = {
-  all: ["name", "capital", "population", "region", "flags"],
+  all: [
+    "name",
+    "nativeName",
+    "population",
+    "region",
+    "flags",
+    "capital",
+    "alpha3Code",
+  ],
   name: [
     "name",
     "nativeName",
@@ -26,14 +39,23 @@ const fields: Record<(typeof restCountriesApiRoutes)[number], string[]> = {
     "currencies",
     "languages",
     "borders",
+    "alpha3Code",
   ],
   alpha: ["name"],
-  region: ["name", "capital", "population", "region", "flags"],
+  region: [
+    "name",
+    "nativeName",
+    "population",
+    "region",
+    "flags",
+    "capital",
+    "alpha3Code",
+  ],
 };
 
 const regionsRoutes = regionsData.map((region: Region) => ({
   kind: "region",
-  name: region.toLowerCase(),
+  name: region,
   path: `/region/${region.toLowerCase()}`,
   fields: fields.region,
 }));
@@ -42,8 +64,8 @@ const routes = [
   ...restCountriesApiRoutes.map((route) => {
     if (route !== "region") {
       return {
-        kind: route.toLowerCase() as RestCountriesApiRouteKind,
-        name: route.toLowerCase(),
+        kind: route as RestCountriesApiRouteKind,
+        name: route,
         path: `/${route.toLowerCase()}`,
         fields: fields[route],
       };

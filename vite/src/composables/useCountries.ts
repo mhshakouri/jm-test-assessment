@@ -1,75 +1,78 @@
 import { computed, ref } from "vue";
-import { Country } from "../types";
-import { restCountriesApi } from "../constants/rest-countries";
-import { createSharedComposable, watchDebounced } from "@vueuse/core";
+import { Country, Region, SortOptions, SortOrders } from "../types";
+import { createSharedComposable } from "@vueuse/core";
 import { useRegionFilter } from "./useRegionFilter";
 import { useSearch } from "./useSearch";
+import { CountriesRepository } from "../types/composables/countries";
+import { useSort } from "./useSort";
 
 const useCountriesComposable = () => {
-  const { searchText } = useSearch();
+  const { searchText, searchAll, isSearching } = useSearch();
   const { regionFilter } = useRegionFilter();
+  const defaultSort = ref<SortOptions>('name');
+  const defaultSortOrder = ref<SortOrders>('asc');
+  const { sort, sortOrder } = useSort(defaultSort.value, defaultSortOrder.value);
+  const countriesRepository = ref<CountriesRepository>(new Map());
 
-  const countries = ref<Country[]>([]);
-  const isLoading = ref(false);
-  const hasError = ref();
-  const isSearching = ref(Boolean(searchText.value?.length));
-
-  watchDebounced(
-    searchText,
-    (newSearchText?: string) => {
-      isSearching.value = Boolean(newSearchText?.length);
-    },
-    { debounce: 250, maxWait: 500 }
+  const region = computed(() =>
+    regionFilter.value?.length
+      ? (regionFilter.value?.toString?.().toLowerCase() as Lowercase<Region>)
+      : undefined
   );
-
-  const apiRoute = computed(() =>
-    regionFilter.value
-      ? restCountriesApi.routes.find(
-          (route) =>
-            route.kind === "region" && route.name === regionFilter.value
+  const countriesArray = computed<Country[]>(() =>
+    Array.from(countriesRepository.value.values()).sort((a, b) => (sort.value === defaultSort.value ? a.name.localeCompare(b.name) : a.population === 'N/A' ? 0 : b.population === 'N/A' ? 0 : a.population - b.population) * (sortOrder.value === defaultSortOrder.value ? 1 : -1))
+  );
+  const countries = computed<Country[]>(() =>
+    region.value && !searchAll.value
+      ? countriesArray.value.filter(
+          (country) => country.region.toLowerCase() === region.value?.toLowerCase()
         )
-      : restCountriesApi.routes.find(
-          (route) => route.kind === "all" && route.name === "all"
-        )
+      : countriesArray.value
   );
-
-  const url = computed(
-    () =>
-      `${restCountriesApi.baseUrl}${
-        apiRoute.value?.path
-      }?fields=${apiRoute.value?.fields.join(",")}`
+  const countriesBySearch = computed<Country[]>(() =>
+    countries.value.filter((country) =>
+      country.name.toLowerCase().includes(searchText.value?.toLowerCase() ?? "")
+    )
   );
-
-  const countriesList = computed(() => {
-    if (isSearching.value) {
-      return countries.value?.filter((country: Country) =>
-        country.name
-          .toLowerCase()
-          .includes(searchText.value?.toLowerCase() ?? "")
-      );
+  const countriesList = computed<Country[]>(() => {
+    if (!isSearching.value) {
+        return countries.value;
     }
-    return countries.value;
+    return countriesBySearch.value;
   });
 
-  const fetchCountries = async () => {
-    if (isLoading.value) return;
-    isLoading.value = true;
-    hasError.value = undefined;
-    await fetch(url.value)
-      .then((response) => response.json())
-      .then((data) => {
-        countries.value = data;
-      })
-      .catch((error) => {
-        countries.value = [];
-        hasError.value = error;
-      })
-      .finally(() => {
-        isLoading.value = false;
+  const setCountry = (data: Partial<Country>) => {
+    if (!data.alpha3Code) return;
+    
+    const currentCountry = countriesRepository.value.get(data.alpha3Code);
+    if (!currentCountry) {
+      countriesRepository.value.set(data.alpha3Code, {
+        ...data as Country,
+        population: data.population ?? 'N/A',
+        capital: data.capital ?? 'N/A',
       });
+    } else {
+      countriesRepository.value.set(data.alpha3Code, {
+        alpha3Code: data.alpha3Code ?? currentCountry.alpha3Code,
+        region: data.region ?? currentCountry.region,
+        name: data.name ?? currentCountry.name,
+        nativeName: data.nativeName ?? currentCountry.nativeName,
+        population: data.population ?? currentCountry.population ?? 'N/A',
+        subregion: data.subregion ?? currentCountry.subregion,
+        capital: data.capital ?? currentCountry.capital ?? 'N/A',
+        flags: data.flags ?? currentCountry.flags,
+        topLevelDomain: data.topLevelDomain ?? currentCountry.topLevelDomain,
+        currencies: data.currencies ?? currentCountry.currencies,
+        languages: data.languages ?? currentCountry.languages,
+        borders: data.borders ?? currentCountry.borders,
+      });
+    }
+  };
+  const setCountries = (data: Partial<Country>[]) => {
+    (data ?? []).forEach((country) => setCountry(country));
   };
 
-  return { countries, countriesList, fetchCountries, isLoading, hasError };
+  return { setCountries, setCountry, countriesList, countriesRepository, countriesArray };
 };
 
 export const useCountries = createSharedComposable(useCountriesComposable);

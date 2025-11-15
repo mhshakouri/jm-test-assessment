@@ -10,7 +10,7 @@ setupColorScheme();
     class="min-h-screen flex flex-col bg-jm-gray-lighter text-jm-blue-darker dark:bg-jm-blue dark:text-jm-gray-lighter"
   >
     <AppHeader />
-    <section class="container mx-auto py-4 flex-1">
+    <section class="container mx-auto py-4 px-4 flex-1">
       <Suspense>
         <router-view />
         <template #fallback>

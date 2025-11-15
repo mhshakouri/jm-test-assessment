@@ -2,8 +2,9 @@ import { useRouter } from "vue-router";
 import { UiSelectOption } from "../types/ui/select";
 import { useRegion } from "./useRegion";
 import { computed, watch, ref, nextTick } from "vue";
+import { createSharedComposable } from "@vueuse/core";
 
-export const useRegionFilter = () => {
+const useRegionFilterComposable = () => {
   const { region } = useRegion();
   const { currentRoute, push } = useRouter();
   const regionRouteQuery = computed(() => currentRoute.value.query.region);
@@ -58,9 +59,10 @@ export const useRegionFilter = () => {
   };
 
   return {
-    region,
     regionFilter,
     setRegion,
     setupRegionFilter,
   };
 };
+
+export const useRegionFilter = createSharedComposable(useRegionFilterComposable);

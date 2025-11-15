@@ -6,18 +6,9 @@ import { Region } from "./regions"
 
 interface Country {
     name: string
-    capital: string
-    population: number
-    region: Region
-    flags: Flag
-    independent: boolean
-}
-
-interface CountryDetails {
-    name: string
     nativeName: string
-    population: number
-    region: Region
+    population: number | 'N/A'
+    region: Lowercase<Region>
     subregion: string
     capital: string
     flags: Flag
@@ -25,9 +16,9 @@ interface CountryDetails {
     currencies: Currency[]
     languages: Language[]
     borders: string[]
+    alpha3Code: string
 }
 
 export type {
     Country,
-    CountryDetails
 }

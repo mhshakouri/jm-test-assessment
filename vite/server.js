@@ -52,12 +52,15 @@ app.use('*all', async (req, res) => {
       render = (await import('./dist/server/entry-server.js')).render
     }
     const rendered = await render(url, req.headers.cookie)
+    const { theme, ssrContext: { data} } = rendered.ctx
 
-    // Inject theme into HTML tag
     const html = template
-      .replace(/<html([^>]*)>/, `<html$1 data-theme="${rendered.theme || 'light'}">`)
+      // Inject theme into HTML tag
+      .replace(/<html([^>]*)>/, `<html$1 data-theme="${theme}">`)
       .replace(`<!--app-head-->`, rendered.head ?? '')
       .replace(`<!--app-html-->`, rendered.html ?? '')
+      // Inject SSR data into window.__SSR_DATA__
+      .replace(`<!--ssr-data-->`, `<script id="ssr-data">window.__SSR_DATA__ = ${JSON.stringify(data)}</script>`)
 
     res.status(200).set({ 'Content-Type': 'text/html' }).send(html)
   } catch (e) {

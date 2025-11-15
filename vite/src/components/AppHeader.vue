@@ -1,9 +1,11 @@
 <template>
   <header
-    class="flex items-center justify-between p-4 bg-jm-white dark:bg-jm-blue-lighter"
+    class=" bg-jm-white dark:bg-jm-blue-lighter sticky top-0 z-10"
   >
+  <div class="container mx-auto py-4 flex-1 flex items-center justify-between p-4">
     <h1 class="text-normal font-semibold">{{ slogan }}</h1>
     <ColorSchemeToggler />
+  </div>
   </header>
 </template>
 <script lang="ts" setup>

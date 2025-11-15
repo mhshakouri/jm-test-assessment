@@ -101,14 +101,14 @@ const uiSelectTheme = tv(
     base: "relative",
     slots: {
       button:
-        "flex items-center gap-2 p-4 bg-jm-white dark:bg-jm-blue-lighter w-full rounded-md cursor-pointer h-10",
+        "flex items-center gap-2 p-4 bg-jm-white text-jm-blue-darker dark:bg-jm-blue-lighter dark:text-jm-gray-lighter p-2 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-jm-blue-lighter dark:focus:ring-jm-gray-lighter hover:bg-jm-gray-lighter dark:hover:bg-jm-blue-darker transition-colors duration-200 w-full rounded-md cursor-pointer h-10",
       buttonLabel: "flex-auto flex justify-start",
       icon: "flex-none",
-      close: "flex-none hover:bg-jm-gray dark:hover:bg-jm-blue p-2 rounded-sm",
+      close: "flex-none hover:bg-jm-gray-lighter dark:hover:bg-jm-blue-darker text-jm-blue-darker dark:text-jm-gray-lighter p-2 rounded-sm focus:outline-none focus:ring-2 focus:ring-jm-blue-lighter dark:focus:ring-jm-gray-lighter hover:bg-jm-gray-lighter dark:hover:bg-jm-blue-darker transition-colors duration-200",
       optionList:
-        "absolute top-full mt-2 left-0 w-full bg-jm-white dark:bg-jm-blue-lighter shadow-lg rounded-md flex flex-col gap-2 p-2",
+        "absolute top-full mt-2 left-0 w-full bg-jm-white text-jm-blue-darker dark:bg-jm-blue-lighter dark:text-jm-gray-lighter shadow-lg rounded-md flex flex-col gap-2 p-2",
       optionItem:
-        "py-1 px-4 cursor-pointer flex items-center justify-start rounded-sm",
+        "py-1 px-4 cursor-pointer flex items-center justify-start rounded-sm text-jm-blue-darker dark:text-jm-gray-lighter",
       transitionOut: "transition duration-300 ease-out",
       transitionIn: "transition duration-300 ease-in",
       transitionLeaveTo: "opacity-0 translate-y-10",
