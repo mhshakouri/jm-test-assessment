@@ -19,7 +19,7 @@ const getThemeFromCookies = (cookies?: string | object | null): ColorScheme => {
  * @param cookies - Request cookies for theme extraction
  */
 export async function render(url: string, cookies?: string | object | null) {
-  const { app, router, ssrContext } = createApp()
+  const { app, router, navigationStack, ssrContext } = createApp()
   
   // Navigate to the requested URL
   await router.push(url)
@@ -30,7 +30,7 @@ export async function render(url: string, cookies?: string | object | null) {
   
   // Create render context with theme and SSR data
   // SSR context is provided to components via useSSRContext()
-  const ctx = { theme, ssrContext }
+  const ctx = { theme, ssrContext, navigationStack }
   
   // Render Vue app to HTML string
   const html = await renderToString(app, ctx)

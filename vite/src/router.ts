@@ -1,6 +1,8 @@
 import { createRouter, createMemoryHistory, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import IndexPage from './pages/index.vue'
 import CountryPage from './pages/country.vue'
+// In your store or global state
+const navigationStack: string[] = [];
 
 /**
  * Application routes configuration
@@ -14,7 +16,7 @@ const routes: RouteRecordRaw[] = [
     path: '/country/:code',
     name: 'country',
     component: CountryPage,
-    props: true // Pass route params as component props
+    props: false // Pass route params as component props
   }
 ]
 
@@ -27,8 +29,13 @@ export function createAppRouter() {
     ? createMemoryHistory(import.meta.env.BASE_URL) 
     : createWebHistory(import.meta.env.BASE_URL)
   
-  return createRouter({
+  const router = createRouter({
     history,
     routes,
   })
+  router.beforeEach((_to, from, next) => {
+    navigationStack.push(from.fullPath);
+    next();
+  });
+  return {router, navigationStack};
 }

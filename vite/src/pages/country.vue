@@ -1,4 +1,5 @@
 <template>
+  <PageHeader type="detail" class="mb-12"/>
   <CountryDetail
     v-if="country"
     :country="country"
@@ -12,6 +13,7 @@ import { useCountries } from "../composables/useCountries";
 import { useFetchCountries } from "../composables/useFetchCountries";
 import { computed, ref, watch } from "vue";
 import CountryDetail from "../components/country/CountryDetail.vue";
+import PageHeader from "../components/PageHeader.vue";
 
 const route = useRoute();
 const { getCountryByCode } = useCountries();

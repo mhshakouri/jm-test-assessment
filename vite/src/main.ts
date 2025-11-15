@@ -18,11 +18,12 @@ export function createApp() {
   const app = createSSRApp(App)
   
   // Setup router
-  const router = createAppRouter()
+  const {router, navigationStack} = createAppRouter()
   app.use(router)
   
   // Provide SSR context to components via dependency injection
   app.provide('ssrContext', ssrContext)
+  app.provide('navigationStack', navigationStack)
   
-  return { app, router, ssrContext }
+  return { app, router, ssrContext, navigationStack }
 }
