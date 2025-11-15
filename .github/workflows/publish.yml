@@ -19,6 +19,9 @@ on:
           - arc-runner-set
         default: ubuntu-latest
         type: choice
+  push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
