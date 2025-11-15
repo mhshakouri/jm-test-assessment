@@ -8,7 +8,7 @@ services:
       - traefik-external
     labels:
       traefik.enable: true
-      traefik.http.routers.jm-test.middlewares: traefik-beta-middlewares, traefik-beta-auth
+      traefik.http.routers.jm-test.middlewares: traefik-beta-middlewares
       traefik.http.routers.jm-test.rule: "Host(`jm-test.tanincard.ir`)"
       traefik.http.routers.jm-test.service: jm-test
       traefik.http.services.jm-test.loadbalancer.server.port: 3000
