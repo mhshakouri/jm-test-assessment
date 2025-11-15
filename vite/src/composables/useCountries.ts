@@ -34,9 +34,7 @@ const useCountriesComposable = () => {
       : countriesArray.value
   );
   const countriesBySearch = computed<Country[]>(() =>
-    countries.value.filter((country) =>
-      country.name.toLowerCase().includes(searchText.value?.toLowerCase() ?? "")
-    )
+    filteredCountries(countries.value)
   );
   const countriesList = computed<Country[]>(() => {
     if (!isSearching.value) {
@@ -91,6 +89,68 @@ const useCountriesComposable = () => {
           : a.population - b.population) *
         (sortOrder.value === defaultSortOrder.value ? 1 : -1)
     );
+  };
+  /**
+   * NOTE: I generated this function using AI, it's not perfect but it's a good start.
+   * I used this prompt, to be honest:
+   * "I want to change the filteredCountries function so that it would also have search results for something like:
+   * text search: grmany or grmny
+   * result => germany
+   * I think implementing something that gets the order of the character,
+   * matches if the order can happen within a country name would be logical"
+   * 
+   * Fuzzy matching function that checks if characters in the query
+   * appear in order within the text (case-insensitive).
+   * 
+   * Examples:
+   * - "grmany" matches "Germany" (g-r-m-a-n-y appear in order)
+   * - "grmny" matches "Germany" (g-r-m-n-y appear in order)
+   * - "usa" matches "United States of America" (u-s-a appear in order)
+   */
+  const fuzzyMatch = (query: string, text: string): boolean => {
+    if (!query || !text) return false;
+    
+    const queryLower = query.toLowerCase();
+    const textLower = text.toLowerCase();
+    
+    // If query is empty, match everything
+    if (queryLower.length === 0) return true;
+    
+    // Check if query is a substring (exact match)
+    if (textLower.includes(queryLower)) return true;
+    
+    // Fuzzy match: check if all characters appear in order
+    let queryIndex = 0;
+    for (let i = 0; i < textLower.length && queryIndex < queryLower.length; i++) {
+      if (textLower[i] === queryLower[queryIndex]) {
+        queryIndex++;
+      }
+    }
+    
+    // Match if we found all characters in order
+    return queryIndex === queryLower.length;
+  };
+
+  const filteredCountries = (data: Country[]) => {
+    if (!searchText.value || !searchText.value.trim()) {
+      return data;
+    }
+    
+    const query = searchText.value.trim();
+    
+    return data.filter((country) => {
+      // Check country name (e.g., "Germany")
+      if (fuzzyMatch(query, country.name)) {
+        return true;
+      }
+      
+      // Also check native name if available
+      if (country.nativeName && fuzzyMatch(query, country.nativeName)) {
+        return true;
+      }
+      
+      return false;
+    });
   };
 
   return {
