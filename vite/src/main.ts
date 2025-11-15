@@ -3,14 +3,26 @@ import App from './App.vue'
 import { createAppRouter } from './router'
 import type { SSRContext } from 'vue/server-renderer'
 
-// SSR requires a fresh app instance per request, therefore we export a function
-// that creates a fresh app instance. If using Vuex, we'd also be creating a
-// fresh store here.
+/**
+ * Create a fresh Vue app instance
+ * 
+ * SSR requires a fresh app instance per request to avoid state leakage
+ * between requests. This factory function ensures each request gets
+ * its own isolated app, router, and SSR context.
+ */
 export function createApp() {
-  const ssrContext: SSRContext = { data: {} as Record<string, any> }
+  // Initialize SSR context for data hydration
+  const ssrContext: SSRContext = { data: {} as Record<string, string> }
+  
+  // Create Vue app instance
   const app = createSSRApp(App)
+  
+  // Setup router
   const router = createAppRouter()
   app.use(router)
+  
+  // Provide SSR context to components via dependency injection
   app.provide('ssrContext', ssrContext)
+  
   return { app, router, ssrContext }
 }

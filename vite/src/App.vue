@@ -2,8 +2,8 @@
 import AppHeader from "./components/AppHeader.vue";
 import { useColorSchemeToggler } from "./composables/useColorSchemeToggler";
 
-const { setupColorScheme } = useColorSchemeToggler();
-setupColorScheme();
+// Initialize color scheme on app mount
+useColorSchemeToggler().setupColorScheme();
 </script>
 <template>
   <main
