@@ -13,15 +13,9 @@
 import type { Country } from '../../types';
 import UiKeyValue from '../ui/UiKeyValue.vue';
 import Flag from '../flag.vue';
-const props = defineProps<{
+defineProps<{
     country: Country;
     preload?: boolean;
 }>();
-if (props.country.population === 'N/A' || props.country.population === undefined || props.country.population === 0) {
-    console.warn('Country population is not defined', {
-        name: props.country.name,
-        population: props.country.population,
-    });
-}
 
 </script>
