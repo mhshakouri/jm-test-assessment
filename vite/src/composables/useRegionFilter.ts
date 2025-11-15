@@ -51,7 +51,7 @@ const useRegionFilterComposable = () => {
       await nextTick();
       isSyncingFromRoute.value = false;
     }
-  });
+  }, { immediate: true, deep: true, flush: 'sync' });
 
   const setupRegionFilter = () => {
     if (!hasRegionRouteQuery.value) return;

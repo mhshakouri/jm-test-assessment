@@ -2,25 +2,48 @@ import { computed, ref } from "vue";
 import type { SortOptions, SortOrders } from "../types/composables/sort";
 import { createSharedComposable } from "@vueuse/core";
 
+const ICONS = {
+    name: {
+        variant: 'mdi:sort-alphabetical-variant',
+        ascending: 'mdi:sort-alphabetical-ascending',
+        descending: 'mdi:sort-alphabetical-descending',
+    },
+    population: {
+        variant: 'mdi:sort-numeric-variant',
+        ascending: 'mdi:sort-numeric-ascending',
+        descending: 'mdi:sort-numeric-descending',
+    },
+} as const;
+
 const useSortComposable = (sortBy: SortOptions = 'name', sortOrderBy: SortOrders = 'asc') => {
     const sort = ref<SortOptions>(sortBy);
     const sortOrder = ref<SortOrders>(sortOrderBy);
 
-    const sortIcon = computed(() => sort.value === 'name' ? 'mdi:sort-alphabetical-variant' : 'mdi:sort-numeric-variant');
-    const sortIconToBe = computed(() => sort.value === 'name' ? 'mdi:sort-numeric-variant' : 'mdi:sort-alphabetical-variant');
-    const sortIconAriaLabel = computed(() => sort.value === 'name' ? 'Sort by name' : 'Sort by population');
+    const currentIcons = computed(() => ICONS[sort.value]);
+    const nextSort = computed<SortOptions>(() => sort.value === 'name' ? 'population' : 'name');
+    const nextIcons = computed(() => ICONS[nextSort.value]);
+    const nextSortOrder = computed<SortOrders>(() => sortOrder.value === 'asc' ? 'desc' : 'asc');
 
-    const sortOrderIcon = computed(() => sort.value === 'name' ? sortOrder.value === 'asc' ? 'mdi:sort-alphabetical-ascending' : 'mdi:sort-alphabetical-descending' : sortOrder.value === 'asc' ? 'mdi:sort-numeric-ascending' : 'mdi:sort-numeric-descending');
+    const sortIcon = computed(() => currentIcons.value.variant);
+    const sortIconToBe = computed(() => nextIcons.value.variant);
+    const sortIconAriaLabel = computed(() => `Sort by ${sort.value === 'name' ? 'name' : 'population'}`);
 
-    const sortOrderIconToBe = computed(() => sort.value === 'name' ? sortOrder.value === 'asc' ? 'mdi:sort-alphabetical-descending' : 'mdi:sort-alphabetical-ascending' : sortOrder.value === 'asc' ? 'mdi:sort-numeric-descending' : 'mdi:sort-numeric-ascending');
+    const sortOrderIcon = computed(() => 
+        currentIcons.value[sortOrder.value === 'asc' ? 'ascending' : 'descending']
+    );
+    const sortOrderIconToBe = computed(() => 
+        currentIcons.value[nextSortOrder.value === 'asc' ? 'ascending' : 'descending']
+    );
+    const sortOrderIconAriaLabel = computed(() => 
+        `Change sort order to ${nextSortOrder.value === 'asc' ? 'ascending' : 'descending'}`
+    );
 
-    const sortOrderIconAriaLabel = computed(() => sort.value === 'name' ? 'Change sort order to ' + (sortOrder.value === 'asc' ? 'descending' : 'ascending') : 'Change sort order to ' + (sortOrder.value === 'asc' ? 'descending' : 'ascending'));
     const toggleSortOrder = () => {
-        sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc';
+        sortOrder.value = nextSortOrder.value;
     };
 
     const toggleSort = () => {
-        sort.value = sort.value === 'name' ? 'population' : 'name';
+        sort.value = nextSort.value;
     };
 
     return {

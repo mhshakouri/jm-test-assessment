@@ -6,10 +6,11 @@
     class="w-48"
   />
 </template>
+
 <script setup lang="ts">
+import { computed } from "vue";
 import UiSelect from "./ui/UiSelect.vue";
 import type { UiSelectOption } from "../types/ui/select";
-import { computed, ref } from "vue";
 import { useRegionFilter } from "../composables/useRegionFilter";
 import { regionsData } from "../constants/regions";
 import { useFetchCountries } from "../composables/useFetchCountries";
@@ -17,17 +18,19 @@ import { useFetchCountries } from "../composables/useFetchCountries";
 const { regionFilter, setRegion } = useRegionFilter();
 const { fetchCountries } = useFetchCountries();
 
-const regions = ref(
-  regionsData.map((region) => ({ label: region, value: region }))
+const regions: UiSelectOption[] = regionsData.map((region) => ({
+  label: region,
+  value: region,
+}));
+
+const DEFAULT_REGION_OPTION: UiSelectOption = {
+  label: "Filter by Region",
+  value: undefined,
+};
+
+const selectedRegion = computed<UiSelectOption>(() =>
+  regions.find((item) => item.value === regionFilter.value) ?? DEFAULT_REGION_OPTION
 );
-const selectedRegion = computed<UiSelectOption>(() => {
-  return (
-    regions.value.find((item) => item.value === regionFilter.value) ?? {
-      label: "Filter by Region",
-      value: undefined,
-    }
-  );
-});
 
 const setSelectedRegion = async (region?: UiSelectOption) => {
   await setRegion(region?.value);
