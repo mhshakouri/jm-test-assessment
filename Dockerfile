@@ -28,4 +28,4 @@ COPY --from=base /app/package.json ./package.json
 EXPOSE 3000
 
 # Run the same server entry used by `pnpm preview`
-CMD ["node", "./node_modules/.bin/tsx", "server.ts"]
+CMD ["./node_modules/.bin/tsx", "server.ts"]
