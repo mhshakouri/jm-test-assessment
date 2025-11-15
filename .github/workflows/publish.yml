@@ -114,7 +114,7 @@ jobs:
             echo $IMAGE_URL > .test-echo
             docker pull $IMAGE_URL
             sleep 1
-            cd ~/servers/JM_TEST
+            cd ~/servers/jm-test
             sleep 1
             # Use the source branch for PRs, or the current ref for pushes
             BRANCH_NAME=${{ github.head_ref || github.ref_name }}
