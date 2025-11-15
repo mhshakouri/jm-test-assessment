@@ -1,0 +1,19 @@
+services:
+  jm-test:
+    image: ${IMAGE_URL}
+    restart: unless-stopped
+    env_file:
+      - .env
+    networks:
+      - traefik-external
+    labels:
+      traefik.enable: true
+      traefik.http.routers.jm-test.middlewares: traefik-beta-middlewares, traefik-beta-auth
+      traefik.http.routers.jm-test.rule: "Host(`jm-test.tanincard.ir`)"
+      traefik.http.routers.jm-test.service: jm-test
+      traefik.http.services.jm-test.loadbalancer.server.port: 3000
+
+networks:
+  traefik-external:
+    name: traefik-external
+    external: true
