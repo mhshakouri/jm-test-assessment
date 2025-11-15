@@ -1,6 +1,12 @@
 <template>
-  <span class="flex gap-2">
-    <span class="font-semibold text-normal">{{ title }}:</span>
+  <span
+    :class="[
+      'flex gap-2',
+      flexCol ? 'flex-col' : 'flex-row',
+      fullWidth ? 'w-full' : '',
+    ]"
+  >
+    <span class="font-semibold text-normal">{{ title }}</span>
     <slot>
       <span class="font-light text-normal">{{ description }}</span>
     </slot>
@@ -11,5 +17,7 @@
 defineProps<{
   title: string;
   description?: string;
+  flexCol?: boolean;
+  fullWidth?: boolean;
 }>();
 </script>
