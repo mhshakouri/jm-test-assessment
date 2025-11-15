@@ -9,7 +9,11 @@
     "build:client": "vite build --outDir dist/client",
     "build:server": "vite build --ssr src/entry-server.ts --outDir dist/server",
     "preview": "cross-env NODE_ENV=production tsx server.ts",
-    "check": "vue-tsc"
+    "check": "vue-tsc",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.17",
@@ -28,12 +32,16 @@
     "@types/express": "^5.0.3",
     "@types/node": "^24.5.1",
     "@vitejs/plugin-vue": "^6.0.1",
+    "@vitest/ui": "^4.0.9",
+    "@vue/test-utils": "^2.4.6",
     "cross-env": "^10.0.0",
+    "happy-dom": "^20.0.10",
     "tailwind-merge": "^3.4.0",
     "tailwind-variants": "^3.1.1",
     "tsx": "^4.20.6",
     "typescript": "~5.9.2",
     "vite": "^7.1.5",
+    "vitest": "^4.0.9",
     "vue-tsc": "^3.0.7"
   },
   "packageManager": "pnpm@10.18.1+sha512.77a884a165cbba2d8d1c19e3b4880eee6d2fcabd0d879121e282196b80042351d5eb3ca0935fa599da1dc51265cc68816ad2bddd2a2de5ea9fdf92adbec7cd34"
