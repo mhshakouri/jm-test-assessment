@@ -1,4 +1,4 @@
-name: Publish jm-test
+name: Publish JM_TEST
 
 permissions:
   contents: write
@@ -6,7 +6,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: jm-test-${{ github.head_ref || github.ref }}
+  group: JM_TEST-${{ github.head_ref || github.ref }}
   cancel-in-progress: true 
 
 on:
@@ -96,22 +96,22 @@ jobs:
     needs: 
       - build
     steps:
-      - name: Deploy jm-test
+      - name: Deploy JM_TEST
         uses: appleboy/ssh-action@v1.0.3
         env:
           IMAGE_URL: ${{ needs.build.outputs.image_url }}
         with:
-          host: ${{ secrets.JM-TEST_SSH_IP }}
-          username: ${{ secrets.JM-TEST_SSH_USER }}
-          key: ${{ secrets.JM-TEST_SSH_PRIV_KEY }}
-          port: ${{ secrets.JM-TEST_SSH_PORT }}
+          host: ${{ secrets.JM_TEST_SSH_IP }}
+          username: ${{ secrets.JM_TEST_SSH_USER }}
+          key: ${{ secrets.JM_TEST_SSH_PRIV_KEY }}
+          port: ${{ secrets.JM_TEST_SSH_PORT }}
           envs: IMAGE_URL
           command_timeout: "25m"
           script: |
             echo $IMAGE_URL > .test-echo
             docker pull $IMAGE_URL
             sleep 1
-            cd ~/servers/jm-test
+            cd ~/servers/JM_TEST
             sleep 1
             # Use the source branch for PRs, or the current ref for pushes
             BRANCH_NAME=${{ github.head_ref || github.ref_name }}
