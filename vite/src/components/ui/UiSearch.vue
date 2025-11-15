@@ -1,7 +1,7 @@
 <template>
   <div>
     <label for="search" :class="labelClasses">
-      <Icon icon="mdi:search" />
+      <Icon icon="mdi:search" :ssr="true" data-allow-mismatch />
       <input
         type="text"
         id="search"

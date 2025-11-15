@@ -11,12 +11,13 @@
       <h1 class="self-start">
         <UiKeyValue v-if="country.name" :title="country.name" />
       </h1>
-      <div class="flex flex-col gap-2 md:flex-row md:min-w-0">
-        <div class="flex flex-col gap-2 md:min-w-0">
+      <div class="flex flex-col gap-2 md:flex-row md:min-w-0 md:gap-6">
+        <div class="flex flex-col gap-2 md:min-w-0 md:flex-1">
           <UiKeyValue
             v-if="country.nativeName"
             title="Native Name:"
             :description="country.nativeName"
+            class="md:flex-col"
           />
           <UiKeyValue
             v-if="country.population !== undefined"
@@ -46,7 +47,7 @@
             title="Top Level Domain:"
             :description="country.topLevelDomain.join(', ')"
           />
-          <UiKeyValue v-if="country.currencies?.length" title="Currencies:">
+          <UiKeyValue v-if="country.currencies?.length" title="Currencies:" class="md:flex-col">
             <template #default>
               <div class="flex flex-row gap-2">
                 <span

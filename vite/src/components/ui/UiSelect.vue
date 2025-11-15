@@ -11,10 +11,10 @@
         @click.stop="clearSelectedOption"
         :class="closeClass"
       >
-        <Icon icon="mdi:close" />
+        <Icon icon="mdi:close" :ssr="true" data-allow-mismatch />
       </span>
       <span :class="buttonLabelClass">{{ selectedOption.label }}</span>
-      <Icon :icon="chevronIconName" :class="iconClass" />
+      <Icon :icon="chevronIconName" :class="iconClass" :ssr="true" data-allow-mismatch />
     </button>
     <Transition
       :enter-from-class="enterFromClass"
