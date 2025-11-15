@@ -1,24 +1,24 @@
-// using v2 version of the api https://jm-test-assessment.vercel.app/
+/**
+ * REST Countries API configuration
+ * Using v2 version: https://jm-test-assessment.vercel.app/
+ */
 
-import {
-  RestCountriesApiRoute,
-  RestCountriesApiRouteKind,
-  Region,
-} from "../types";
-import { regionsData } from "./regions";
+import { Region } from "../types";
 
-const targetVersion = "v2";
+const API_VERSION = "v2";
+const BASE_URL = `https://restcountries.com/${API_VERSION}`;
 
-// used routes from the api
-const restCountriesApiRoutes = [
+// API route names (used for type generation)
+export const restCountriesApiRoutes = [
   "alpha", 
   "all", 
   "name", 
   "region"
 ] as const;
 
-const fields: Record<(typeof restCountriesApiRoutes)[number], string[]> = {
-  all: [
+// Field definitions
+const FIELD_SETS = {
+  minimal: [
     "name",
     "nativeName",
     "population",
@@ -27,7 +27,7 @@ const fields: Record<(typeof restCountriesApiRoutes)[number], string[]> = {
     "capital",
     "alpha3Code",
   ],
-  name: [
+  full: [
     "name",
     "nativeName",
     "population",
@@ -41,42 +41,21 @@ const fields: Record<(typeof restCountriesApiRoutes)[number], string[]> = {
     "borders",
     "alpha3Code",
   ],
-  alpha: ["name"],
-  region: [
-    "name",
-    "nativeName",
-    "population",
-    "region",
-    "flags",
-    "capital",
-    "alpha3Code",
-  ],
+} as const;
+
+/**
+ * Build URL for fetching countries list (all or by region)
+ */
+export const getCountriesUrl = (region?: Lowercase<Region>): string => {
+  const fields = FIELD_SETS.minimal.join(",");
+  const path = region ? `/region/${region.toLowerCase()}` : "/all";
+  return `${BASE_URL}${path}?fields=${fields}`;
 };
 
-const regionsRoutes = regionsData.map((region: Region) => ({
-  kind: "region",
-  name: region,
-  path: `/region/${region.toLowerCase()}`,
-  fields: fields.region,
-}));
-
-const routes = [
-  ...restCountriesApiRoutes.map((route) => {
-    if (route !== "region") {
-      return {
-        kind: route as RestCountriesApiRouteKind,
-        name: route,
-        path: `/${route.toLowerCase()}`,
-        fields: fields[route],
-      };
-    }
-  }),
-  ...regionsRoutes,
-].filter(Boolean) as RestCountriesApiRoute[];
-
-const restCountriesApi = {
-  baseUrl: `https://restcountries.com/${targetVersion}`,
-  routes,
+/**
+ * Build URL for fetching a single country by code
+ */
+export const getCountryUrl = (code: string): string => {
+  const fields = FIELD_SETS.full.join(",");
+  return `${BASE_URL}/alpha/${code.toLowerCase()}?fields=${fields}`;
 };
-
-export { restCountriesApiRoutes, restCountriesApi };

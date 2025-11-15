@@ -14,8 +14,6 @@ type KeyType = string | (() => string) | MaybeRefOrGetter<string>;
 interface UseFetchAsyncDataOptions {
     immediate?: boolean;
     server?: boolean;
-    cache?: boolean;
-    cacheTime?: number;
 }
 
 export declare function useFetchAsyncData<DataT extends unknown, ErrorT = unknown>(

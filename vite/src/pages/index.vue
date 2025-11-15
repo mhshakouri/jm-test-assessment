@@ -1,7 +1,7 @@
 <template>
   <div>
     <PageHeader />
-    <ListCountry v-if="!pending && !error && countriesList?.length" :countries="countriesList" class="py-6" />
+    <ListCountry v-if="!countriesPending && !countriesError && countriesList?.length" :countries="countriesList" class="py-6" />
   </div>
 </template>
 <script setup lang="ts">
@@ -11,7 +11,7 @@ import { useRegionFilter } from "../composables/useRegionFilter";
 import ListCountry from "../components/list/ListCountry.vue";
 
 const { setupRegionFilter } = useRegionFilter();
-const { fetchCountries, pending, error, countriesList } = useFetchCountries();
+const { fetchCountries, countriesPending, countriesError, countriesList } = useFetchCountries();
 
 // Fetch data on SSR and client
 setupRegionFilter();

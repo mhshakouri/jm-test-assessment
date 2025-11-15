@@ -1,20 +1,21 @@
 import { computed, ref } from "vue";
-import { Country, Region, SortOptions, SortOrders } from "../types";
+import { Country, Region } from "../types";
 import { createSharedComposable } from "@vueuse/core";
 import { useRegionFilter } from "./useRegionFilter";
 import { useSearch } from "./useSearch";
 import { CountriesRepository } from "../types/composables/countries";
 import { useSort } from "./useSort";
+import { fuzzyMatch } from "../utils/fuzzyMatch";
+
 
 const useCountriesComposable = () => {
   const { searchText, searchAll, isSearching } = useSearch();
   const { regionFilter } = useRegionFilter();
-  const defaultSort = ref<SortOptions>("name");
-  const defaultSortOrder = ref<SortOrders>("asc");
   const { sort, sortOrder } = useSort(
-    defaultSort.value,
-    defaultSortOrder.value
+    'name',
+    'asc'
   );
+
   const countriesRepository = ref<CountriesRepository>(new Map());
 
   const region = computed(() =>
@@ -43,125 +44,82 @@ const useCountriesComposable = () => {
     return countriesBySearch.value;
   });
 
+  const normalizePopulation = (value: unknown): number | "N/A" => {
+    if (value === "N/A" || value === undefined || value === null) return "N/A";
+    const num = Number(value);
+    return !isNaN(num) ? num : "N/A";
+  };
+
   const setCountry = (data: Partial<Country>) => {
     if (!data.alpha3Code) return;
 
     const currentCountry = countriesRepository.value.get(data.alpha3Code);
-    if (!currentCountry) {
-      let population = data.population ?? "N/A";
-      population = !isNaN(Number(population)) ? Number(population) : "N/A";
-      countriesRepository.value.set(data.alpha3Code, {
-        ...(data as Country),
-        population: population,
-        capital: data.capital ?? "N/A",
-      });
-    } else {
-      let population = data.population ?? currentCountry.population;
-      population = !isNaN(Number(population)) ? Number(population) : "N/A";
-      countriesRepository.value.set(data.alpha3Code, {
-        alpha3Code: data.alpha3Code ?? currentCountry.alpha3Code,
-        region: data.region ?? currentCountry.region,
-        name: data.name ?? currentCountry.name,
-        nativeName: data.nativeName ?? currentCountry.nativeName,
-        population: population,
-        subregion: data.subregion ?? currentCountry.subregion,
-        capital: data.capital ?? currentCountry.capital ?? "N/A",
-        flags: data.flags ?? currentCountry.flags,
-        topLevelDomain: data.topLevelDomain ?? currentCountry.topLevelDomain,
-        currencies: data.currencies ?? currentCountry.currencies,
-        languages: data.languages ?? currentCountry.languages,
-        borders: data.borders ?? currentCountry.borders,
-      });
-    }
+    const population = normalizePopulation(data.population ?? currentCountry?.population);
+    const needFullDetails = !data.borders?.length && !data.currencies?.length;
+
+    const country: Country = {
+      ...currentCountry,
+      ...data,
+      alpha3Code: data.alpha3Code,
+      population,
+      capital: data.capital ?? currentCountry?.capital ?? "N/A",
+      needFullDetails,
+    } as Country;
+
+    countriesRepository.value.set(data.alpha3Code, country);
     
-    // Ensure reactivity by replacing the Map reference
-    // This ensures Vue detects the change, especially for Map mutations
-    const newMap = new Map(countriesRepository.value);
-    countriesRepository.value = newMap;
+    // Replace Map reference to ensure Vue reactivity
+    countriesRepository.value = new Map(countriesRepository.value);
   };
   const setCountries = (data: Partial<Country>[]) => {
     (data ?? []).forEach((country) => setCountry(country));
   };
-  const sortedCountries = (data: Country[]) => {
-    return data.sort(
-      (a, b) =>
-        (sort.value === defaultSort.value
-          ? a.name.localeCompare(b.name)
-          : a.population === "N/A"
-          ? 0
-          : b.population === "N/A"
-          ? 0
-          : a.population - b.population) *
-        (sortOrder.value === defaultSortOrder.value ? 1 : -1)
-    );
-  };
-  /**
-   * NOTE: I generated this function using AI, it's not perfect but it's a good start.
-   * I used this prompt, to be honest:
-   * "I want to change the filteredCountries function so that it would also have search results for something like:
-   * text search: grmany or grmny
-   * result => germany
-   * I think implementing something that gets the order of the character,
-   * matches if the order can happen within a country name would be logical"
-   * 
-   * Fuzzy matching function that checks if characters in the query
-   * appear in order within the text (case-insensitive).
-   * 
-   * Examples:
-   * - "grmany" matches "Germany" (g-r-m-a-n-y appear in order)
-   * - "grmny" matches "Germany" (g-r-m-n-y appear in order)
-   * - "usa" matches "United States of America" (u-s-a appear in order)
-   */
-  const fuzzyMatch = (query: string, text: string): boolean => {
-    if (!query || !text) return false;
-    
-    const queryLower = query.toLowerCase();
-    const textLower = text.toLowerCase();
-    
-    // If query is empty, match everything
-    if (queryLower.length === 0) return true;
-    
-    // Check if query is a substring (exact match)
-    if (textLower.includes(queryLower)) return true;
-    
-    // Fuzzy match: check if all characters appear in order
-    let queryIndex = 0;
-    for (let i = 0; i < textLower.length && queryIndex < queryLower.length; i++) {
-      if (textLower[i] === queryLower[queryIndex]) {
-        queryIndex++;
-      }
-    }
-    
-    // Match if we found all characters in order
-    return queryIndex === queryLower.length;
-  };
-
-  const filteredCountries = (data: Country[]) => {
-    if (!searchText.value || !searchText.value.trim()) {
-      return data;
-    }
-    
-    const query = searchText.value.trim();
-    
-    return data.filter((country) => {
-      // Check country name (e.g., "Germany")
-      if (fuzzyMatch(query, country.name)) {
-        return true;
+  const sortedCountries = (data: Country[]): Country[] => {
+    return [...data].sort((a, b) => {
+      let comparison = 0;
+      
+      if (sort.value === 'name') {
+        comparison = a.name.localeCompare(b.name);
+      } else {
+        // Sort by population
+        if (a.population === "N/A" && b.population === "N/A") {
+          comparison = 0;
+        } else if (a.population === "N/A") {
+          comparison = 1; // N/A goes to end
+        } else if (b.population === "N/A") {
+          comparison = -1; // N/A goes to end
+        } else {
+          comparison = a.population - b.population;
+        }
       }
       
-      // Also check native name if available
-      if (country.nativeName && fuzzyMatch(query, country.nativeName)) {
-        return true;
-      }
-      
-      return false;
+      return comparison * (sortOrder.value === 'asc' ? 1 : -1);
     });
   };
 
-  const getCountryByName = (name: string): Country | undefined => {
-    if (!name) return undefined;
-    const nameLower = name.toLowerCase().trim();
-    return countriesArray.value.find(country => country.name?.toLowerCase().trim() === nameLower);
+  const filteredCountries = (data: Country[]) => {
+    const searchTextString = searchText.value?.trim?.()?.toLowerCase?.()
+    if (!searchTextString?.length) {
+      return data;
+    }
+    return data.filter((country) => {
+      // Check country name (e.g., "Germany")
+      return fuzzyMatch(searchTextString, country.name);
+    });
+  };
+
+  const getCountryByCode = (code?: string): Country | undefined => {
+    const codeString = code?.trim?.()?.toLowerCase();
+    if (!codeString?.length) return undefined;
+    
+    // Try direct Map lookup first (case-insensitive search)
+    for (const [key, country] of countriesRepository.value.entries()) {
+      if (key.toLowerCase() === codeString || country.alpha3Code?.toLowerCase() === codeString) {
+        return country;
+      }
+    }
+    
+    return undefined;
   };
 
   return {
@@ -170,7 +128,7 @@ const useCountriesComposable = () => {
     countriesList,
     countriesRepository,
     countriesArray,
-    getCountryByName
+    getCountryByCode,
   };
 };
 

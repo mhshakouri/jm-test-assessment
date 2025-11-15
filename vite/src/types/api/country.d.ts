@@ -17,6 +17,7 @@ interface Country {
     languages: Language[]
     borders: string[]
     alpha3Code: string
+    needFullDetails: boolean
 }
 
 export type {
